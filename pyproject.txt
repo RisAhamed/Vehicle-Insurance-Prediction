@@ -1,0 +1,13 @@
+[project]
+name = "src"
+version = "0.0.1"
+description = "An MLOps project for productionizing models"
+authors = [{name = "Riswan Ahamed", email = "riswanahamed38@gmail.com"}]
+dynamic = ["readme", "requires-python", "classifiers", "dependencies"]
+
+[tool.setuptools]
+packages = {find = {}}
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+requires-python = {value = ">=3.7"}  # Add this line
