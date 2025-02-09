@@ -34,9 +34,10 @@ class DataIngestion:
         
         # Basic validation
         assert len(df.columns) == 12, "CSV should have 12 columns"
-        required_columns = ['case_id', 'continent', 'education_of_employee', 'case_status']
+        required_columns = ["id","Gender","Age","Driving_License","Region_Code","Previously_Insured","Vehicle_Age","Vehicle_Damage","Annual_Premium","Policy_Sales_Channel","Vintage","Response"]
         for col in required_columns:
             assert col in df.columns, f"Missing required column: {col}"
+
             
         # Save processed data
         df.to_csv(os.path.join(self.config.unzip_dir, "visa_data.csv"), index=False)
@@ -90,7 +91,7 @@ class DataIngestion:
             logging.info("Starting data ingestion")
             
             # Create all required directories
-            os.makedirs(self.config.data_ingestion_dir, exist_ok=True)
+            os.makedirs(self.config.root_dir, exist_ok=True)
             os.makedirs(self.config.raw_data_dir, exist_ok=True)
             os.makedirs(os.path.dirname(self.config.train_file_path), exist_ok=True)
             os.makedirs(os.path.dirname(self.config.test_file_path), exist_ok=True)

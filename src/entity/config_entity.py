@@ -16,17 +16,21 @@ training_pipeline_config = TrainingPipelineConfig()
 
 @dataclass
 class DataIngestionConfig:
-    root_dir: Path
-    source_URL: str
-    local_data_file: Path
-    data_ingestion_dir: str = os.path.join(training_pipeline_config.artifact_dir, DATA_INGESTION_DIR_NAME)
-    unzip_dir: str = os.path.join(data_ingestion_dir, "unzipped_data")
-    raw_data_dir: str = os.path.join(data_ingestion_dir, "raw_data")
-    ingested_data_dir: str = os.path.join(data_ingestion_dir, "ingested_data")
+    root_dir: Path=  os.path.join(training_pipeline_config.artifact_dir, DATA_INGESTION_DIR_NAME)
+    source_URL: str = DATA_INGESTION_URL
+    local_data_file: Path = os.path.join(root_dir, "data.csv")
+    unzip_dir: str = os.path.join(root_dir, "unzipped_data")
+    raw_data_dir: str = os.path.join(root_dir, "raw_data")
+    ingested_data_dir: str = os.path.join(root_dir, "ingested_data")
+
     train_file_path: str = os.path.join(ingested_data_dir, "train", TRAIN_FILE_NAME)
     test_file_path: str = os.path.join(ingested_data_dir, "test", TEST_FILE_NAME)
     train_test_split_ratio: float = DATA_INGESTION_TRAIN_TEST_SPLIT_RATIO
 
+@dataclass
+class DataValidationConfig:
+    data_validation_dir: str = os.path.join(training_pipeline_config.artifact_dir, DATA_VALIDATION_DIR_NAME)
+    validation_report_file_path: str = os.path.join(data_validation_dir, DATA_VALIDATION_REPORT_FILE_NAME)
 
 # @dataclass
 # class DataIngestionConfig:
@@ -37,5 +41,4 @@ class DataIngestionConfig:
 #     database_name: str = DATABASE_NAME
 
 # data_ingestion_config = DataIngestionConfig()
-
 

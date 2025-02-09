@@ -5,3 +5,9 @@ data_ingestion:
   source_URL: https://raw.githubusercontent.com/RisAhamed/Mlops-with-Mongo-DB/refs/heads/main/EasyVisa.csv
   local_data_file: artifacts/data_ingestion/data.csv
   unzip_dir: artifacts/data_ingestion/unzipped_data 
+
+data_validation:
+  data_validation_dir: "path/to/validation_dir"
+  validation_report_file_path: "path/to/report_file"
+
+
