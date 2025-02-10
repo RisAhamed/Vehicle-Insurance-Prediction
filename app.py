@@ -8,9 +8,9 @@ import sys
 def main():
     try:
         training_pipeline = TrainingPipeline()
-        data_ingestion_artifact = training_pipeline.start_data_ingestion()
-        data_validation_artifact = training_pipeline.start_data_validation(data_ingestion_artifact)
-        
+        # data_ingestion_artifact = training_pipeline.start_data_ingestion()
+        # data_validation_artifact = training_pipeline.start_data_validation(data_ingestion_artifact)
+        training_pipeline.run_pipeline()
     except Exception as e:
         raise CustomException(e, sys)
 
