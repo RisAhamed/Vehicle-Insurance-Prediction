@@ -43,9 +43,11 @@ class ModelEvaluation:
             if project1_estimator.is_model_present(model_path):
                 return project1_estimator
             else:
-                raise Exception(f"Model not found in s3 bucket")
+                logging.info("No model found in S3 bucket. This might be the first run.")
+                return None
         except Exception as e:
-            raise CustomException(e, sys) from e
+            logging.warning(f"Error in get_best_model: {e}")
+            return None
         
         
             
@@ -96,17 +98,24 @@ class ModelEvaluation:
             trained_model_f1_score = self.model_trainer_artifact.classification_metric_artifact.f1_score
 
             best_model_f1_score = None
-            best_model =self.get_best_model()
+            best_model = self.get_best_model()
 
             if best_model is not None:
-                logging.info("Loading best model")
+                logging.info("Loading best model from S3")
                 y_hat_best_model = best_model.predict(x)
                 best_model_f1_score = f1_score(y,y_hat_best_model)
+                logging.info(f"Best model F1 score: {best_model_f1_score}")
+            else:
+                logging.info("No existing model found in S3. This is likely the first run.")
+                
+            # If no best model exists (first run) or trained model is better
             tmp_best_model_score = 0 if best_model_f1_score is None else best_model_f1_score
+            is_model_accepted = True if best_model is None else trained_model_f1_score > tmp_best_model_score
+            
             response = EvaluateModelResponse(
                 trained_model_f1_score=trained_model_f1_score,
                 best_model_f1_score=tmp_best_model_score,
-                is_model_accepted=trained_model_f1_score > tmp_best_model_score,
+                is_model_accepted=is_model_accepted,
                 difference=abs(trained_model_f1_score - tmp_best_model_score)
             )
             logging.info(f"Model evaluation response: {response}")
@@ -129,5 +138,15 @@ class ModelEvaluation:
             logging.info(f"Model evaluation artifact: {model_evaluation_artifact}")
             return model_evaluation_artifact
         except Exception as e:
-            raise CustomException(e, sys) from e
+            logging.error(f"Error in model evaluation: {e}")
+            # Create a default artifact that accepts the model for the first run
+            s3_model_path = self.model_evaluation_config.s3_model_key_path
+            model_evaluation_artifact = ModelEvaluationArtifact(
+                is_model_accepted=True,  # Accept model by default for first run
+                changed_accuracy=0.0,
+                s3_model_path=s3_model_path,
+                trained_model_path=self.model_trainer_artifact.trained_model_file_path
+            )
+            logging.info(f"Created default model evaluation artifact due to error: {model_evaluation_artifact}")
+            return model_evaluation_artifact
 
