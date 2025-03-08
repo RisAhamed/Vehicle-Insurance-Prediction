@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.responses import HTMLResponse, RedirectResponse
 from uvicorn import run as app_run
+import time
 
 from typing import Optional
 
@@ -14,7 +15,11 @@ from src.pipline.prediction_pipeline import VehicleData, VehicleDataClassifier
 from src.pipline.training_pipeline import TrainingPipeline
 
 # Initialize FastAPI application
-app = FastAPI()
+app = FastAPI(
+    title="AI Vehicle Insurance Predictor",
+    description="An ML-powered application to predict customer interest in vehicle insurance",
+    version="1.0.0"
+)
 
 # Mount the 'static' directory for serving static files (like CSS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -60,20 +65,20 @@ class DataForm:
         This method is asynchronous to handle form data fetching without blocking.
         """
         form = await self.request.form()
-        self.Gender = form.get("Gender")
-        self.Age = form.get("Age")
-        self.Driving_License = form.get("Driving_License")
-        self.Region_Code = form.get("Region_Code")
-        self.Previously_Insured = form.get("Previously_Insured")
-        self.Annual_Premium = form.get("Annual_Premium")
-        self.Policy_Sales_Channel = form.get("Policy_Sales_Channel")
-        self.Vintage = form.get("Vintage")
-        self.Vehicle_Age_lt_1_Year = form.get("Vehicle_Age_lt_1_Year")
-        self.Vehicle_Age_gt_2_Years = form.get("Vehicle_Age_gt_2_Years")
-        self.Vehicle_Damage_Yes = form.get("Vehicle_Damage_Yes")
+        self.Gender = int(form.get("Gender"))
+        self.Age = int(form.get("Age"))
+        self.Driving_License = int(form.get("Driving_License"))
+        self.Region_Code = float(form.get("Region_Code"))
+        self.Previously_Insured = int(form.get("Previously_Insured"))
+        self.Annual_Premium = float(form.get("Annual_Premium"))
+        self.Policy_Sales_Channel = float(form.get("Policy_Sales_Channel"))
+        self.Vintage = int(form.get("Vintage"))
+        self.Vehicle_Age_lt_1_Year = int(form.get("Vehicle_Age_lt_1_Year"))
+        self.Vehicle_Age_gt_2_Years = int(form.get("Vehicle_Age_gt_2_Years"))
+        self.Vehicle_Damage_Yes = int(form.get("Vehicle_Damage_Yes"))
 
 # Route to render the main page with the form
-@app.get("/", tags=["authentication"])
+@app.get("/", tags=["frontend"])
 async def index(request: Request):
     """
     Renders the main HTML form page for vehicle data input.
@@ -82,26 +87,40 @@ async def index(request: Request):
             "vehicledata.html",{"request": request, "context": "Rendering"})
 
 # Route to trigger the model training process
-@app.get("/train")
-async def trainRouteClient():
+@app.get("/train", tags=["model"])
+async def trainRouteClient(request: Request):
     """
     Endpoint to initiate the model training pipeline.
     """
     try:
+        # Add a small delay to simulate AI processing
+        time.sleep(1)
+        
         train_pipeline = TrainingPipeline()
         train_pipeline.run_pipeline()
-        return Response("Training successful!!!")
+        
+        # Return to the main page with a success message
+        return templates.TemplateResponse(
+            "vehicledata.html",
+            {"request": request, "context": "Model trained successfully!"}
+        )
 
     except Exception as e:
-        return Response(f"Error Occurred! {e}")
+        return templates.TemplateResponse(
+            "vehicledata.html",
+            {"request": request, "context": f"Error: {str(e)}"}
+        )
 
 # Route to handle form submission and make predictions
-@app.post("/")
+@app.post("/", tags=["prediction"])
 async def predictRouteClient(request: Request):
     """
     Endpoint to receive form data, process it, and make a prediction.
     """
     try:
+        # Add a small delay to simulate AI processing
+        time.sleep(0.5)
+        
         form = DataForm(request)
         await form.get_vehicle_data()
         
@@ -138,7 +157,10 @@ async def predictRouteClient(request: Request):
         )
         
     except Exception as e:
-        return {"status": False, "error": f"{e}"}
+        return templates.TemplateResponse(
+            "vehicledata.html",
+            {"request": request, "context": f"Error: {str(e)}"},
+        )
 
 # Main entry point to start the FastAPI server
 if __name__ == "__main__":
